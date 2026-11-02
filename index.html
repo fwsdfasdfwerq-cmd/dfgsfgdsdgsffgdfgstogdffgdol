@@ -4131,12 +4131,23 @@ window.CLOUD_ICONS = {"aigirl.png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEU
 
   /* TOOL CONTROL PANEL */
   .tool-auth-card {
-    background: linear-gradient(135deg, rgba(24, 12, 40, 0.96) 0%, rgba(14, 7, 26, 0.98) 100%) !important;
-    border: 1px solid rgba(168, 85, 247, 0.4) !important;
+    background: linear-gradient(145deg, rgba(20, 12, 36, 0.98) 0%, rgba(12, 6, 22, 0.99) 100%) !important;
+    border: 1px solid rgba(168, 85, 247, 0.35) !important;
     border-radius: 18px !important;
-    padding: 18px 20px !important;
-    margin-bottom: 20px !important;
-    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6) !important;
+    padding: 20px !important;
+    margin-bottom: 22px !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  }
+  .tool-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  @media (max-width: 480px) {
+    .tool-grid-2 {
+      grid-template-columns: 1fr;
+    }
   }
   .tool-row {
     display: flex;
@@ -4150,46 +4161,75 @@ window.CLOUD_ICONS = {"aigirl.png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEU
   }
   .tool-input, .tool-select {
     width: 100%;
-    background: #0d0817;
-    border: 1px solid rgba(168, 85, 247, 0.35);
+    background: #0d0718;
+    border: 1px solid rgba(168, 85, 247, 0.3);
     border-radius: 10px;
     padding: 10px 14px;
     color: #fff;
     font-family: inherit;
     font-size: 13px;
     box-sizing: border-box;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
   }
   .tool-input:focus, .tool-select:focus {
     border-color: #c084fc;
     outline: none;
-    box-shadow: 0 0 10px rgba(192, 132, 252, 0.35);
+    box-shadow: 0 0 12px rgba(192, 132, 252, 0.3);
+  }
+  .tool-actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
   }
   .tool-btn {
-    background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
-    border: 1px solid #c084fc;
+    background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+    border: 1px solid #38bdf8;
     border-radius: 12px;
     color: #fff;
     font-size: 13px;
     font-weight: 700;
-    padding: 12px 18px;
+    padding: 12px 16px;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    box-shadow: 0 4px 14px rgba(168, 85, 247, 0.3);
+    box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
   }
   .tool-btn:hover {
-    filter: brightness(1.15);
+    filter: brightness(1.12);
     transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(168, 85, 247, 0.45);
+    box-shadow: 0 6px 18px rgba(14, 165, 233, 0.45);
   }
   .tool-btn-full {
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
     border: 1px solid #fbbf24 !important;
     box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3) !important;
+  }
+  .tool-btn-reset-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .tool-btn-reset-secondary:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
+    color: #fff;
   }
   .tool-btn-reset {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
@@ -4218,11 +4258,21 @@ window.CLOUD_ICONS = {"aigirl.png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEU
   }
   .tool-account-badge {
     margin-top: 14px;
-    padding: 12px 16px;
-    background: #090510;
-    border: 1px solid rgba(168, 85, 247, 0.25);
-    border-radius: 12px;
+    padding: 14px 16px;
+    background: linear-gradient(145deg, rgba(16, 10, 28, 0.95) 0%, rgba(10, 6, 18, 0.98) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.35);
+    border-radius: 14px;
     display: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .tool-stat-pill {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   /* EDITOR SECTIONS & CARDS */
@@ -5207,28 +5257,27 @@ window.CLOUD_ICONS = {"aigirl.png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEU
       </div>
       
       
-      <div class="tool-row">
+      <div class="tool-grid-2">
         <div>
-          <label style="font-size:11px; color:#94a3b8; display:block; margin-bottom:4px;">Email ChillyRoom</label>
+          <label style="font-size:11px; color:#94a3b8; display:block; margin-bottom:5px; font-weight:600;">Email ChillyRoom</label>
           <input id="tool-email" class="tool-input" type="email" placeholder="kominovdima34@gmail.com" value="">
         </div>
         <div>
-          <label style="font-size:11px; color:#94a3b8; display:block; margin-bottom:4px;">Пароль</label>
+          <label style="font-size:11px; color:#94a3b8; display:block; margin-bottom:5px; font-weight:600;">Пароль</label>
           <input id="tool-password" class="tool-input" type="password" placeholder="••••••••" value="">
         </div>
       </div>
       
-      
-      <div class="tool-row" style="align-items:flex-end;">
-        <div style="flex:1;">
-          <label style="font-size:11px; color:#94a3b8; display:block; margin-bottom:4px;">Платформа</label>
+      <div class="tool-grid-2">
+        <div>
+          <label style="font-size:11px; color:#94a3b8; display:block; margin-bottom:5px; font-weight:600;">Платформа</label>
           <select id="tool-platform" class="tool-select" onchange="onPlatformChange()">
             <option value="android" selected>Android (Google Play)</option>
             <option value="ios">iOS (App Store)</option>
           </select>
         </div>
-        <div style="flex:1;">
-          <label style="font-size:11px; color:#94a3b8; display:block; margin-bottom:4px;">Версия игры в облаке</label>
+        <div>
+          <label style="font-size:11px; color:#94a3b8; display:block; margin-bottom:5px; font-weight:600;">Версия игры в облаке</label>
           <div style="display:flex; gap:6px;">
             <select id="tool-version-select" class="tool-select" style="flex:1;" onchange="onVersionSelectChange()">
               <option value="8.7.0">8.7.0</option>
@@ -5237,40 +5286,59 @@ window.CLOUD_ICONS = {"aigirl.png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEU
               <option value="custom">Своя версия...</option>
             </select>
             <input id="tool-version-custom" class="tool-input" type="text" placeholder="Версия..." style="flex:1; display:none;" value="8.7.0">
-            <button class="tool-btn" style="padding:8px 12px; font-size:11px;" onclick="toolSetVersion()" title="Зафиксировать версию на сервере">
+            <button class="tool-btn" style="padding:8px 12px; font-size:12px; min-width:auto; width:auto;" onclick="toolSetVersion()" title="Зафиксировать версию на сервере">
               ⚙️
             </button>
           </div>
         </div>
       </div>
 
-      
-      <div class="tool-row" style="margin-top:14px;">
+      <div class="tool-actions-grid">
         <button id="tool-load-btn" class="tool-btn" onclick="toolLoadAccount()">
           <span>📥 Загрузить сейв</span>
         </button>
         <button id="tool-full-btn" class="tool-btn tool-btn-full" onclick="toolUploadFullAccount()">
           <span>🚀 ФУЛЛ сейв</span>
         </button>
-        <button id="tool-reset-btn" class="tool-btn tool-btn-reset" onclick="toolEmergencyResetAccount()">
-          <span>🧹 Обнулить сейв</span>
-        </button>
       </div>
 
-      
+      <button id="tool-reset-btn" class="tool-btn-reset-secondary" onclick="toolEmergencyResetAccount()" title="Сбросить сохранение в облаке до стартового">
+        <span>🧹 Сбросить сейв (обнуление)</span>
+      </button>
+
       <div id="tool-account-badge" class="tool-account-badge">
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:6px; margin-bottom:6px;">
-          <span id="tool-acc-email" style="font-weight:700; color:#fff;">-</span>
-          <span id="tool-acc-uid" style="color:#c084fc; font-weight:700;">UID: -</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:8px; margin-bottom:10px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:15px;">👤</span>
+            <span id="tool-acc-email" style="font-weight:700; color:#fff; font-size:13px;">-</span>
+          </div>
+          <span id="tool-acc-uid" style="color:#c084fc; font-weight:800; font-size:12px; font-family:monospace; background:rgba(192,132,252,0.12); padding:3px 8px; border-radius:6px; border:1px solid rgba(192,132,252,0.25);">UID: -</span>
         </div>
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; font-size:11px; color:#cbd5e1;">
-          <div>💎 Гемы: <b id="tool-gems" style="color:#60a5fa;">0</b></div>
-          <div>🐟 Чипсы: <b id="tool-fish" style="color:#fbbf24;">0</b></div>
-          <div>🪙 Монеты: <b id="tool-season" style="color:#34d399;">0</b></div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+          <div class="tool-stat-pill">
+            <span style="font-size:15px;">💎</span>
+            <div>
+              <div style="font-size:10px; color:#94a3b8;">Гемы</div>
+              <b id="tool-gems" style="color:#60a5fa; font-size:12px;">0</b>
+            </div>
+          </div>
+          <div class="tool-stat-pill">
+            <span style="font-size:15px;">🐟</span>
+            <div>
+              <div style="font-size:10px; color:#94a3b8;">Чипсы</div>
+              <b id="tool-fish" style="color:#fbbf24; font-size:12px;">0</b>
+            </div>
+          </div>
+          <div class="tool-stat-pill">
+            <span style="font-size:15px;">🪙</span>
+            <div>
+              <div style="font-size:10px; color:#94a3b8;">Монеты</div>
+              <b id="tool-season" style="color:#34d399; font-size:12px;">0</b>
+            </div>
+          </div>
         </div>
       </div>
 
-      
       <div id="tool-status" class="tool-status-box"></div>
     </div>
 
@@ -11399,11 +11467,11 @@ body:before, body:after {
         const gemsEl = document.getElementById("cur-val-gems");
         if (gemsEl) gemsEl.textContent = Number(window.latestCloudData.gems || 0).toLocaleString();
 
-        const fishCount = (window.latestCloudData.materials || []).find(m => m.id === "material_fish")?.count || 0;
+        const fishCount = (window.latestCloudData.fish != null) ? window.latestCloudData.fish : ((window.latestCloudData.materials || []).find(m => m.id === "material_fish")?.count || 0);
         const fishEl = document.getElementById("cur-val-fish");
         if (fishEl) fishEl.textContent = Number(fishCount).toLocaleString();
 
-        const coinsCount = (window.latestCloudData.materials || []).find(m => m.id.includes("coin"))?.count || 0;
+        const coinsCount = (window.latestCloudData.season_coins != null) ? window.latestCloudData.season_coins : ((window.latestCloudData.materials || []).find(m => m.id.includes("coin"))?.count || 0);
         const coinsEl = document.getElementById("cur-val-season");
         if (coinsEl) coinsEl.textContent = Number(coinsCount).toLocaleString();
       }
@@ -11962,16 +12030,18 @@ body:before, body:after {
       const accEmail = document.getElementById("tool-acc-email");
       if (accEmail) accEmail.textContent = email + " (" + platform.toUpperCase() + ")";
       if (cloudData) {
-        if (cloudData.user_id) {
-          const uidEl = document.getElementById("tool-acc-uid");
-          if (uidEl) uidEl.textContent = "UID: " + cloudData.user_id;
-        }
+        const uid = cloudData.user_id || cloudData.uid || '';
+        const uidEl = document.getElementById("tool-acc-uid");
+        if (uidEl) uidEl.textContent = uid ? ("UID: " + uid) : "UID: -";
+
         const gemsEl = document.getElementById("tool-gems");
         if (gemsEl) gemsEl.textContent = Number(cloudData.gems || 0).toLocaleString();
-        const fishCount = (cloudData.materials || []).find(m => m.id === "material_fish")?.count || 0;
+
+        const fishCount = (cloudData.fish != null) ? cloudData.fish : ((cloudData.materials || []).find(m => m.id === "material_fish")?.count || 0);
         const fishEl = document.getElementById("tool-fish");
         if (fishEl) fishEl.textContent = Number(fishCount).toLocaleString();
-        const coinsCount = (cloudData.materials || []).find(m => m.id.includes("coin"))?.count || 0;
+
+        const coinsCount = (cloudData.season_coins != null) ? cloudData.season_coins : ((cloudData.materials || []).find(m => m.id.includes("coin"))?.count || 0);
         const seasonEl = document.getElementById("tool-season");
         if (seasonEl) seasonEl.textContent = Number(coinsCount).toLocaleString();
 
@@ -11981,6 +12051,9 @@ body:before, body:after {
         }
         renderCloudPanelData("cloud-grid", cloudData);
         renderEditorWorkspace();
+
+        const ws = document.getElementById("editor-workspace");
+        if (ws) ws.style.display = "block";
       }
     }
 

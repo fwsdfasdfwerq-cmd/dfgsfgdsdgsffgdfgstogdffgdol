@@ -5023,7 +5023,7 @@ window.CLOUD_ICONS = {"aigirl.png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEU
       
       <div class="tg-menu-list">
         <button class="tg-menu-btn" onclick="openTgModal('editor')">
-          <span>🛠️</span> Автономный редактор аккаунта (без заказа)
+          <span>☁️</span> Облачный редактор аккаунта ChillyRoom (VDS)
         </button>
         <button class="tg-menu-btn" onclick="openTgModal('gen_full')">
           <span>🌟</span> Создать фулл аккаунты (Google Диск)
@@ -5056,7 +5056,7 @@ window.CLOUD_ICONS = {"aigirl.png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEU
     <div id="modal-editor" class="tg-modal-overlay">
       <div class="tg-modal-box" style="max-width:760px;">
         <div class="tg-modal-title">
-          <span>🛠️ Автономный редактор аккаунта & Облако</span>
+          <span>☁️ Облачный редактор аккаунта ChillyRoom (VDS)</span>
           <button class="tg-modal-close" onclick="closeTgModal('editor')">✕</button>
         </div>
         
@@ -5443,7 +5443,7 @@ window.CLOUD_ICONS = {"aigirl.png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEU
       
       <div class="editor-section">
         <div class="editor-title">
-          <span>⚡</span> Быстрые разблокировки (из автономного редактора)
+          <span>⚡</span> Быстрые разблокировки (ChillyRoom Cloud VDS)
         </div>
         <div class="quick-grid">
           <div class="quick-card">
@@ -9575,24 +9575,14 @@ window.UNLOCK_DB = {"characters": [{"id": "char_1", "cid": 1, "code": "Ranger", 
         submitBtn.style.opacity = "0.7";
       }
 
-      const apiUrl = window.location.origin.startsWith("http")
-        ? "/api/apply_changes"
-        : "http://127.0.0.1:8080/api/apply_changes";
-
       try {
-        const resp = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email,
-            password,
-            platform,
-            version,
-            items: cart
-          })
+        const res = await callCloudApi("apply_changes", {
+          email,
+          password,
+          platform,
+          version,
+          items: cart
         });
-
-        const res = await resp.json();
 
         if (submitBtn) {
           submitBtn.disabled = false;
@@ -9615,8 +9605,8 @@ window.UNLOCK_DB = {"characters": [{"id": "char_1", "cid": 1, "code": "Ranger", 
           statusEl.textContent = "✅ " + res.msg;
         }
 
-        if (res.cloudData) {
-          updateAccountBadge(email, platform, res.cloudData);
+        if (res.cloudData || res.stats) {
+          updateAccountBadge(email, platform, res.cloudData || res.stats);
         }
 
         cart = [];
@@ -11618,33 +11608,134 @@ body:before, body:after {
       }
     }
 
+    const FIREBASE_URL = "https://myproj-37ea2-default-rtdb.firebaseio.com";
+
+    async function callCloudApi(endpoint, payload = {}, timeoutMs = 30000) {
+      // 1. Если запуск локально (localhost / 127.0.0.1) - пробуем локальный порт 8080
+      if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 2000);
+          const isGet = endpoint === "get_versions" || endpoint.startsWith("bot/");
+          const resp = await fetch(`http://127.0.0.1:8080/api/${endpoint}`, {
+            method: isGet ? "GET" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: isGet ? undefined : JSON.stringify(payload),
+            signal: controller.signal
+          });
+          clearTimeout(timer);
+          if (resp.ok) {
+            return await resp.json();
+          }
+        } catch (_) {}
+      }
+
+      // 2. Для версий игры читаем/пишем в Firebase sk_versions
+      if (endpoint === "get_versions") {
+        try {
+          const r = await fetch(`${FIREBASE_URL}/sk_versions.json`);
+          if (r.ok) {
+            const data = await r.json();
+            if (data) return data;
+          }
+        } catch (_) {}
+        return { android_version: "8.7.0.21", ios_version: "8.7.1" };
+      }
+
+      if (endpoint === "set_version") {
+        try {
+          const patch = {};
+          if (payload.platform === "ios") patch.ios_version = payload.version;
+          else patch.android_version = payload.version;
+          await fetch(`${FIREBASE_URL}/sk_versions.json`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(patch)
+          });
+          return { success: true, msg: `Версия ${payload.version} для ${payload.platform.toUpperCase()} зафиксирована на VDS!` };
+        } catch (e) {
+          return { success: false, error: e.message };
+        }
+      }
+
+      // 3. Обработка операций ChillyRoom Cloud через VDS мост
+      const actionMap = {
+        fetch_save: "fetch_save",
+        upload_full_save: "upload_full_save",
+        reset_save: "reset_save",
+        apply_changes: "apply_changes"
+      };
+      const action = actionMap[endpoint] || endpoint;
+
+      const reqId = "req_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
+      const reqPayload = {
+        action: action,
+        email: payload.email || "",
+        password: payload.password || "",
+        platform: payload.platform || "android",
+        version: payload.version || "8.7.0.21",
+        both_platforms: !!payload.both_platforms,
+        items: payload.items || [],
+        single_action: payload.single_action || "",
+        amount: payload.amount,
+        status: "pending",
+        created_at: Date.now()
+      };
+
+      const putResp = await fetch(`${FIREBASE_URL}/cloud_editor_requests/${reqId}.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reqPayload)
+      });
+      if (!putResp.ok) {
+        throw new Error("Не удалось отправить запрос в очередь VDS (HTTP " + putResp.status + ")");
+      }
+
+      const startTime = Date.now();
+      while (Date.now() - startTime < timeoutMs) {
+        await new Promise(r => setTimeout(r, 1200));
+        try {
+          const pollResp = await fetch(`${FIREBASE_URL}/cloud_editor_requests/${reqId}.json`);
+          if (pollResp.ok) {
+            const data = await pollResp.json();
+            if (data && data.status === "completed") {
+              return data;
+            }
+            if (data && data.status === "error") {
+              throw new Error(data.error || "Ошибка ChillyRoom на сервере VDS");
+            }
+          }
+        } catch (pollErr) {
+          if (pollErr.message && !pollErr.message.includes("Failed to fetch")) {
+            throw pollErr;
+          }
+        }
+      }
+
+      throw new Error("Таймаут ожидания ответа от VDS сервера ChillyRoom. Проверьте статус бота на VDS.");
+    }
+
     async function initToolVersions() {
       const platform = document.getElementById("tool-platform") ? document.getElementById("tool-platform").value : "android";
-      const apiUrl = window.location.origin.startsWith("http")
-        ? "/api/get_versions"
-        : "http://127.0.0.1:8080/api/get_versions";
       try {
-        const resp = await fetch(apiUrl);
-        if (resp.ok) {
-          const data = await resp.json();
-          const currentVer = platform === "ios" ? data.ios_version : data.android_version;
-          const sel = document.getElementById("tool-version-select");
-          const customInp = document.getElementById("tool-version-custom");
-          if (sel) {
-            let found = false;
-            for (let i = 0; i < sel.options.length; i++) {
-              if (sel.options[i].value === currentVer) {
-                sel.selectedIndex = i;
-                found = true;
-                break;
-              }
+        const data = await callCloudApi("get_versions");
+        const currentVer = platform === "ios" ? data.ios_version : data.android_version;
+        const sel = document.getElementById("tool-version-select");
+        const customInp = document.getElementById("tool-version-custom");
+        if (sel && currentVer) {
+          let found = false;
+          for (let i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === currentVer) {
+              sel.selectedIndex = i;
+              found = true;
+              break;
             }
-            if (!found && currentVer) {
-              sel.value = "custom";
-              if (customInp) {
-                customInp.style.display = "block";
-                customInp.value = currentVer;
-              }
+          }
+          if (!found) {
+            sel.value = "custom";
+            if (customInp) {
+              customInp.style.display = "block";
+              customInp.value = currentVer;
             }
           }
         }
@@ -11656,18 +11747,10 @@ body:before, body:after {
       const statusEl = document.getElementById("tool-status");
       if (statusEl) {
         statusEl.className = "tool-status-box info";
-        statusEl.textContent = `⏳ Фиксация версии ${version} для ${platform.toUpperCase()}...`;
+        statusEl.textContent = `⏳ Фиксация версии ${version} для ${platform.toUpperCase()} на VDS...`;
       }
-      const apiUrl = window.location.origin.startsWith("http")
-        ? "/api/set_version"
-        : "http://127.0.0.1:8080/api/set_version";
       try {
-        const resp = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ platform, version })
-        });
-        const res = await resp.json();
+        const res = await callCloudApi("set_version", { platform, version });
         if (res.success) {
           if (statusEl) {
             statusEl.className = "tool-status-box ok";
@@ -11682,7 +11765,7 @@ body:before, body:after {
       } catch (err) {
         if (statusEl) {
           statusEl.className = "tool-status-box err";
-          statusEl.textContent = `❌ Ошибка соединения: ${err.message}`;
+          statusEl.textContent = `❌ Ошибка: ${err.message}`;
         }
       }
     }
@@ -11704,48 +11787,35 @@ body:before, body:after {
 
       if (statusEl) {
         statusEl.className = "tool-status-box info";
-        statusEl.textContent = "⏳ Авторизация в ChillyRoom и скачивание актуального сейва...";
+        statusEl.textContent = "⏳ Авторизация в ChillyRoom через VDS и скачивание актуального сейва...";
       }
       if (btn) btn.disabled = true;
 
-      const apiUrl = window.location.origin.startsWith("http")
-        ? "/api/fetch_save"
-        : "http://127.0.0.1:8080/api/fetch_save";
-
       try {
-        const resp = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password, platform, version })
-        });
-        const res = await resp.json();
+        const res = await callCloudApi("fetch_save", { email, password, platform, version });
         if (btn) btn.disabled = false;
 
         if (!res.success) {
           if (statusEl) {
             statusEl.className = "tool-status-box err";
-            statusEl.textContent = "❌ " + (res.error || "Ошибка загрузки сейва.");
+            statusEl.textContent = "❌ " + (res.error || "Ошибка загрузки сейва ChillyRoom.");
           }
           return;
         }
 
         if (statusEl) {
           statusEl.className = "tool-status-box ok";
-          statusEl.textContent = "✅ " + (res.msg || "Сейв успешно скачан и расшифрован!");
+          statusEl.textContent = "✅ " + (res.msg || "Сейв успешно скачан из облака ChillyRoom и расшифрован!");
         }
-        updateAccountBadge(email, platform, res.cloudData);
+        updateAccountBadge(email, platform, res.cloudData || res.stats);
 
       } catch (err) {
         if (btn) btn.disabled = false;
-        // Autonomous offline/demo fallback mode
-        console.warn("API offline, falling back to autonomous mode:", err);
-        const demoData = JSON.parse(JSON.stringify(CLOUD_MODES.full));
-        demoData.user_id = Math.floor(100000000 + Math.random() * 900000000);
+        console.error("Cloud API error:", err);
         if (statusEl) {
-          statusEl.className = "tool-status-box ok";
-          statusEl.innerHTML = "✅ Сейв аккаунта <b>" + email + "</b> загружен в автономном режиме (" + platform.toUpperCase() + ", " + version + ")";
+          statusEl.className = "tool-status-box err";
+          statusEl.textContent = "❌ Ошибка ChillyRoom: " + err.message;
         }
-        updateAccountBadge(email, platform, demoData);
       }
     }
 
@@ -11765,7 +11835,7 @@ body:before, body:after {
 
       saveToolCreds(email, password, platform);
 
-      if (!confirm(`Выгрузить ПОЛНЫЙ ФУЛЛ сейв (все персонажи, скины, питомцы, навыки, 999k ресурсов) в облако ${platform.toUpperCase()}?`)) {
+      if (!confirm(`Выгрузить ПОЛНЫЙ ФУЛЛ сейв (все персонажи, скины, питомцы, навыки, 999k ресурсов) в облако ChillyRoom (${platform.toUpperCase()})?`)) {
         return;
       }
 
@@ -11775,20 +11845,11 @@ body:before, body:after {
       }
       if (statusEl) {
         statusEl.className = "tool-status-box info";
-        statusEl.textContent = `🚀 Сборка донорского фулл сейва и выгрузка в облако ${platform.toUpperCase()}...`;
+        statusEl.textContent = `🚀 Сборка фулл сейва и выгрузка в облако ChillyRoom (${platform.toUpperCase()}) через VDS...`;
       }
 
-      const apiUrl = window.location.origin.startsWith("http")
-        ? "/api/upload_full_save"
-        : "http://127.0.0.1:8080/api/upload_full_save";
-
       try {
-        const resp = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password, platform, version, both_platforms: false })
-        });
-        const res = await resp.json();
+        const res = await callCloudApi("upload_full_save", { email, password, platform, version, both_platforms: false });
 
         if (btn) {
           btn.disabled = false;
@@ -11809,8 +11870,8 @@ body:before, body:after {
           statusEl.className = "tool-status-box ok";
           statusEl.textContent = "✅ " + res.msg;
         }
-        if (res.cloudData) {
-          updateAccountBadge(email, platform, res.cloudData);
+        if (res.cloudData || res.stats) {
+          updateAccountBadge(email, platform, res.cloudData || res.stats);
         }
 
       } catch (err) {
@@ -11818,16 +11879,11 @@ body:before, body:after {
           btn.disabled = false;
           btn.innerHTML = "<span>🚀 ФУЛЛ сейв</span>";
         }
-        // Autonomous full save application
-        const fullSaveData = JSON.parse(JSON.stringify(CLOUD_MODES.full));
-        fullSaveData.user_id = Math.floor(100000000 + Math.random() * 900000000);
-        fullSaveData.gems = 800000;
-        updateAccountBadge(email, platform, fullSaveData);
+        alert("❌ Ошибка выгрузки в облако: " + err.message);
         if (statusEl) {
-          statusEl.className = "tool-status-box ok";
-          statusEl.innerHTML = "✅ ФУЛЛ сейв (42 героя 8★, 800k гемов, 178 ресурсов) успешно применён к аккаунту <b>" + email + "</b>!";
+          statusEl.className = "tool-status-box err";
+          statusEl.textContent = "❌ Ошибка выгрузки в облако: " + err.message;
         }
-        alert("✅ ФУЛЛ сейв успешно выгружен и применён к аккаунту " + email + "!");
       }
     }
 
@@ -11857,20 +11913,11 @@ body:before, body:after {
       }
       if (statusEl) {
         statusEl.className = "tool-status-box info";
-        statusEl.textContent = `🧹 Экстренное обнуление облачного сейва ${platform.toUpperCase()}...`;
+        statusEl.textContent = `🧹 Экстренное обнуление сейва в облаке ChillyRoom (${platform.toUpperCase()}) через VDS...`;
       }
 
-      const apiUrl = window.location.origin.startsWith("http")
-        ? "/api/reset_save"
-        : "http://127.0.0.1:8080/api/reset_save";
-
       try {
-        const resp = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password, platform, version, both_platforms: false })
-        });
-        const res = await resp.json();
+        const res = await callCloudApi("reset_save", { email, password, platform, version, both_platforms: false });
 
         if (btn) {
           btn.disabled = false;
@@ -11891,8 +11938,8 @@ body:before, body:after {
           statusEl.className = "tool-status-box ok";
           statusEl.textContent = "✅ " + res.msg;
         }
-        if (res.cloudData) {
-          updateAccountBadge(email, platform, res.cloudData);
+        if (res.cloudData || res.stats) {
+          updateAccountBadge(email, platform, res.cloudData || res.stats);
         }
 
       } catch (err) {
@@ -11900,14 +11947,11 @@ body:before, body:after {
           btn.disabled = false;
           btn.innerHTML = "<span>🧹 Обнулить сейв</span>";
         }
-        const resetData = JSON.parse(JSON.stringify(CLOUD_MODES.starter));
-        resetData.user_id = Math.floor(100000000 + Math.random() * 900000000);
-        updateAccountBadge(email, platform, resetData);
+        alert("❌ Ошибка обнуления сейва: " + err.message);
         if (statusEl) {
-          statusEl.className = "tool-status-box ok";
-          statusEl.innerHTML = "🧹 Сейв аккаунта <b>" + email + "</b> успешно сброшен и обнулён!";
+          statusEl.className = "tool-status-box err";
+          statusEl.textContent = "❌ Ошибка обнуления сейва: " + err.message;
         }
-        alert("🧹 Сейв аккаунта " + email + " успешно обнулён!");
       }
     }
 
